@@ -16,8 +16,19 @@ export default async function EditDocumentPage({
 
   const project = await getProjectById(projectId)
   if (project == null) return notFound()
+
+  const user = await getCurrentUser()
+  if(user == null) return notFound()
   // FIX: Not checking permissions
   // FIX: Not checking if user has access to project
+  if (
+      user == null ||
+      (user.role !== "admin" &&
+        project.department != null &&
+        user.department !== project.department)
+    ) {
+      return redirect(`/`)
+    }
 
   return (
     <div className="space-y-6">

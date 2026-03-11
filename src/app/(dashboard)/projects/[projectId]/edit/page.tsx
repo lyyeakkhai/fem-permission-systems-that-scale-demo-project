@@ -21,8 +21,18 @@ export default async function EditProjectPage({
 
   const project = await getProjectById(projectId)
   if (project == null) return notFound()
-  // FIX: Not checking permissions
-  // FIX: Not checking if user has access to project
+    // FIX: Not checking permissions
+    // FIX: Not checking if user has access to project
+    const user = await getCurrentUser()
+    if(user == null) return notFound()
+    if (
+        user == null ||
+        (user.role !== "admin" &&
+          project.department != null &&
+          user.department !== project.department)
+      ) {
+        return redirect(`/`)
+      }
 
   return (
     <div className="space-y-6">
@@ -43,11 +53,12 @@ export default async function EditProjectPage({
         <ProjectForm project={project} />
 
         {/* FIX: Missing permission check */}
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
-            <CardDescription>
-              Permanently delete this project and all its documents.
+        {user?.role === "admin" && (
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="text-destructive">Danger Zone</CardTitle>
+              <CardDescription>
+                Permanently delete this project and all its documents.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -59,7 +70,8 @@ export default async function EditProjectPage({
               Delete Project
             </ActionButton>
           </CardContent>
-        </Card>
+        </Card> 
+        )}
       </div>
     </div>
   )

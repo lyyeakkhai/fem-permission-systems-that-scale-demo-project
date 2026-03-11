@@ -14,13 +14,25 @@ export default async function DocumentDetailPage({
   params,
 }: PageProps<"/projects/[projectId]/documents/[documentId]">) {
   const { projectId, documentId } = await params
+  const user = await getCurrentUser()
   // FIX: Not checking permissions
   // FIX: Not checking if user has access to project
+  const project = await getProjectById(projectId)
+  if (project == null) return notFound()
 
+  if (
+    user == null ||
+    (user.role !== "admin" &&
+      project.department != null &&
+      user.department !== project.department)
+  ) {
+    return redirect(`/`)
+  }
+  
   const document = await getDocumentWithUserInfo(documentId)
   if (document == null) return notFound()
 
-  const user = await getCurrentUser()
+
 
   return (
     <div className="space-y-6">

@@ -5,6 +5,11 @@ import { ProjectForm } from "@/components/project-form"
 
 export default async function NewProjectPage() {
   // FIX: Not checking permissions
+    const user = await getCurrentUser()
+    if(user == null) return notFound()
+    if (user.role !== "admin") {
+      return redirect(`/`)
+    }
 
   return (
     <div className="space-y-6">

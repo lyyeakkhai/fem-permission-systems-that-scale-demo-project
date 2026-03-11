@@ -22,10 +22,20 @@ export default async function ProjectDocumentsPage({
   const project = await getProjectById(projectId)
   if (project == null) return notFound()
   // FIX: Not checking if user has access to project
-
-  const documents = await getProjectDocuments(projectId)
   const user = await getCurrentUser()
 
+// we check user permisson so first usre must be assignn and user must be login, user is an admin, user must be inside department that user working on 
+// we check project department is not global project (department is null) because global project is visible for all department and we dont want to block user to access global project
+  if (
+    user == null ||
+    (user.role !== "admin" &&
+      project.department != null &&
+      user.department !== project.department)
+  ) {
+    return redirect(`/`)
+  }
+
+const documents = await getProjectDocuments(projectId)
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -44,7 +54,7 @@ export default async function ProjectDocumentsPage({
           )}
           {/* PERMISSION: */}
           {/* FIX: Missing admin role check */}
-          {user?.role === "author" && (
+          {user?.role === "author" || user?.role === "admin" && (
             <Button asChild>
               <Link href={`/projects/${projectId}/documents/new`}>
                 <PlusIcon className="size-4" />
@@ -58,18 +68,20 @@ export default async function ProjectDocumentsPage({
       {documents.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
+            {/* FIX: Missing permission check */}
             <FileTextIcon className="size-12 text-muted-foreground mb-4" />
             <h2 className="text-lg font-medium">No Documents</h2>
+            {user?.role === "author" || user?.role === "admin" && (<>
             <p className="text-muted-foreground mb-4">
               Create your first document in this project.
             </p>
-            {/* FIX: Missing permission check */}
-            <Button asChild>
-              <Link href={`/projects/${projectId}/documents/new`}>
-                <PlusIcon className="size-4 mr-2" />
-                New Document
-              </Link>
-            </Button>
+              <Button asChild>
+                <Link href={`/projects/${projectId}/documents/new`}>
+                  <PlusIcon className="size-4 mr-2" />
+                  New Document
+                </Link>
+              </Button>
+            </>)}
           </CardContent>
         </Card>
       ) : (
